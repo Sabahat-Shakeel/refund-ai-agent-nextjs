@@ -1,103 +1,154 @@
-import Image from "next/image";
+'use client';
+
+import { FormEvent, useEffect, useRef, useState } from 'react';
+import { BsFillMoonStarsFill} from "react-icons/bs"
+import { TbMessageChatbotFilled } from "react-icons/tb";
+
+
+interface Message {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+const STORAGE_KEY = 'refund-agent-history'; // Key for localStorage
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const chatRef = useRef<HTMLDivElement>(null);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+  // Load history from localStorage on mount (caching conversations)
+  useEffect(() => {
+    const storedHistory = localStorage.getItem(STORAGE_KEY);
+    if (storedHistory) {
+      setMessages(JSON.parse(storedHistory));
+    }
+  }, []);
+
+  // Save history to localStorage whenever messages change (persistent caching)
+  useEffect(() => {
+    if (messages.length > 0) {
+      // Limit to last 100 messages to prevent storage overflow
+      const limitedMessages = messages.slice(-100);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(limitedMessages));
+    }
+  }, [messages]);
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!input.trim()) return;
+
+    const userMessage: Message = { role: 'user', content: input };
+    setMessages((prev) => [...prev, userMessage]);
+    setInput('');
+    setIsLoading(true);
+
+    try {
+      const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL
+      const response = await fetch(BACKEND_URL , {  // Update to your backend URL in production
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: input }),
+      });
+
+      if (!response.body) throw new Error('No response body');
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let assistantMessage = '';
+      setMessages((prev) => [...prev, { role: 'assistant', content: '' }]);
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value);
+        const lines = chunk.split('\n\n');
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6);
+            if (data === '[DONE]') break;
+            assistantMessage += data;
+            setMessages((prev) => {
+              const updated = [...prev];
+              updated[updated.length - 1].content = assistantMessage;
+              return updated;
+            });
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      setMessages((prev) => [...prev, { role: 'assistant', content: 'Sorry, something went wrong. Please try again.' }]);
+    } finally {
+      setIsLoading(false);
+      chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: 'smooth' });
+    }
+  };
+
+  const clearHistory = () => {
+    setMessages([]);
+    localStorage.removeItem(STORAGE_KEY);
+  };
+
+  useEffect(() => {
+    chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: 'smooth' });
+  }, [messages]);
+
+  return (
+    <div className="flex flex-col h-screen  bg-neutral-900">
+      <header className="bg-black shadow shadow-blue-950 text-white p-4 text-center font-bold text-lg flex justify-between items-center py-6 ">
+        Refund AI Assistant
+        <button
+          onClick={clearHistory}
+          className="bg-cyan-800 text-white p-1 rounded-lg hover:bg-red-600"
+          aria-label="Clear conversation history"
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+          Clear History
+        </button>
+        
+      </header>
+      <div ref={chatRef} className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className='text-white overflow-y-auto text-center font-medium p-5 md:text-lg flex-1'>    < BsFillMoonStarsFill className='md:w-9 md:h-9 w-5 h-5 flex justify-start shadow shadow-blue-200 rounded-lg ' /> Hey This is Sabahat AI Refund Assistant Would you like to refund you order</div>
+
+        {messages.length === 0 && (
+          <div  className="text-center text-gray-500 "  >Start by requesting a refund...</div>
+        )}
+        {messages.map((msg, idx) => (
+          <div
+            key={idx}
+           
+            className={`max-w-lg p-3 rounded-t-2xl  shadow-cyan-900 BsChatRightFill flex-1    ${ 
+              msg.role === 'user' ? 'bg-neutral-800 ml-auto' : 'bg-gray-800'
+            } shadow-md`} 
+          > <div className='flex-1'> <TbMessageChatbotFilled /> </div>
+            
+            {msg.content}
+
+        
+          </div>
+          
+        ))}
+        {isLoading && <div className="text-center font-bold text-gray-900">Thinking Request...</div>}
+      </div>
+      <form onSubmit={handleSubmit} className="p-6  bg-neutral-800 flex  rounded-4xl gap-2">
+        <input
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="E.g., I would like a refund for my order..."
+          className="flex-1 p-4 border border-gray-700 rounded-3xl focus:outline-2 focus:ring-4 focus:ring-cyan-900"
+          disabled={isLoading}
+          aria-label="Enter your refund request"
+        />
+        <button
+          type="submit"
+          className="bg-cyan-800 text-white/95 font-bold p-2 rounded-lg hover:bg-cyan-700  "
+          disabled={isLoading}
         >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          Send
+        </button>
+      </form>
     </div>
   );
 }
