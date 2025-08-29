@@ -45,8 +45,8 @@ export default function Home() {
     setIsLoading(true);
 
     try {
-      
-      const response = await fetch("https://huggingface.co/spaces/sbht99/refund-agent/refund" , {  // Update to your backend URL in production
+
+      const response = await fetch(process.env.NEXT_PUBLIC_BACKEND_URL ||"https://sbht99-refund-agent.hf.space/refund" , {  // Update to your backend URL in production
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: input }),
