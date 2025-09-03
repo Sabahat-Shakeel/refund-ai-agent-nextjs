@@ -67,7 +67,7 @@ export default function Home() {
         for (const line of lines) {
           if (line.startsWith('data: ')) {
             const data = line.slice(6);
-            if (data === '[DONE]') break;
+           
             assistantMessage += data;
             setMessages((prev) => {
               const updated = [...prev];
@@ -118,8 +118,8 @@ export default function Home() {
           <div
             key={idx}
            
-            className={`max-w-lg p-3 rounded-t-2xl  shadow-cyan-900 BsChatRightFill flex-1    ${ 
-              msg.role === 'user' ? 'bg-slate-800 ml-auto' : 'bg-neutral-100 text-black/80'
+            className={`max-w-lg p-3 rounded-t-2xl  shadow-cyan-900 flex-1    ${ 
+              msg.role === 'user' ? 'bg-slate-800 ml-auto' : 'bg-neutral-100 text-black/80 '
             } shadow-md`} 
           > <div className='flex-1'> <TbMessageChatbotFilled /> </div>
             
