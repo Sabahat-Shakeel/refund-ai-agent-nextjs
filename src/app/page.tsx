@@ -109,7 +109,7 @@ export default function Home() {
         
       </header>
       <div ref={chatRef} className="flex-1 overflow-y-auto p-4 space-y-4">
-        <div className='text-white/80 overflow-y-auto text-center font-medium p-5 md:text-lg flex-1'>    < BsFillMoonStarsFill className='md:w-9 md:h-9 w-5 h-5 flex justify-start shadow shadow-blue-200 rounded-lg ' /> Hey This is Sabahat AI Refund Assistant Would you like to refund you order</div>
+        <div className='text-white/80 overflow-y-auto text-center font-semibold p-5 md:text-lg flex-1'>    < BsFillMoonStarsFill className='md:w-9 md:h-9 w-5 h-5 flex justify-start shadow shadow-blue-200 rounded-lg  ' /> Hey This is Sabahat AI Refund Assistant Would you like to refund you order</div>
 
         {messages.length === 0 && (
           <div  className="text-center text-gray-500 "  >Start by requesting a refund...</div>
@@ -119,7 +119,7 @@ export default function Home() {
             key={idx}
            
             className={`max-w-lg p-3 rounded-t-2xl  shadow-cyan-900 flex-1    ${ 
-              msg.role === 'user' ? 'bg-slate-800 ml-auto' : 'bg-neutral-100 text-black/80 '
+              msg.role === 'user' ? 'bg-slate-800 ml-auto text-whitw/80' : 'bg-neutral-100 text-black/80 '
             } shadow-md`} 
           > <div className='flex-1'> <TbMessageChatbotFilled /> </div>
             
