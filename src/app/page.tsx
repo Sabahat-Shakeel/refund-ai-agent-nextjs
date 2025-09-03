@@ -119,7 +119,7 @@ export default function Home() {
             key={idx}
            
             className={`max-w-lg p-3 rounded-t-2xl  shadow-cyan-900 BsChatRightFill flex-1    ${ 
-              msg.role === 'user' ? 'bg-slate-800 ml-auto' : 'bg-neutral-100'
+              msg.role === 'user' ? 'bg-slate-800 ml-auto' : 'bg-neutral-100 text-black/80'
             } shadow-md`} 
           > <div className='flex-1'> <TbMessageChatbotFilled /> </div>
             
