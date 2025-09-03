@@ -96,7 +96,7 @@ export default function Home() {
   }, [messages]);
 
   return (
-    <div className="flex flex-col h-screen  bg-neutral-900">
+    <div className="flex flex-col h-screen  bg-cyan-600/30">
       <header className="bg-black shadow shadow-blue-950 text-white p-4 text-center font-bold text-lg flex justify-between items-center py-6 ">
         Refund AI Assistant
         <button
@@ -109,7 +109,7 @@ export default function Home() {
         
       </header>
       <div ref={chatRef} className="flex-1 overflow-y-auto p-4 space-y-4">
-        <div className='text-white overflow-y-auto text-center font-medium p-5 md:text-lg flex-1'>    < BsFillMoonStarsFill className='md:w-9 md:h-9 w-5 h-5 flex justify-start shadow shadow-blue-200 rounded-lg ' /> Hey This is Sabahat AI Refund Assistant Would you like to refund you order</div>
+        <div className='text-white/80 overflow-y-auto text-center font-medium p-5 md:text-lg flex-1'>    < BsFillMoonStarsFill className='md:w-9 md:h-9 w-5 h-5 flex justify-start shadow shadow-blue-200 rounded-lg ' /> Hey This is Sabahat AI Refund Assistant Would you like to refund you order</div>
 
         {messages.length === 0 && (
           <div  className="text-center text-gray-500 "  >Start by requesting a refund...</div>
@@ -119,7 +119,7 @@ export default function Home() {
             key={idx}
            
             className={`max-w-lg p-3 rounded-t-2xl  shadow-cyan-900 BsChatRightFill flex-1    ${ 
-              msg.role === 'user' ? 'bg-neutral-800 ml-auto' : 'bg-gray-800'
+              msg.role === 'user' ? 'bg-slate-800 ml-auto' : 'bg-neutral-100'
             } shadow-md`} 
           > <div className='flex-1'> <TbMessageChatbotFilled /> </div>
             
@@ -129,26 +129,32 @@ export default function Home() {
           </div>
           
         ))}
-        {isLoading && <div className="text-center font-bold text-gray-900">Thinking Request...</div>}
+        {isLoading && <div className="text-center font-bold text-white/80">Thinking Request...</div>}
       </div>
-      <form onSubmit={handleSubmit} className="p-6  bg-neutral-800 flex  rounded-4xl gap-2">
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="E.g., I would like a refund for my order..."
-          className="flex-1 p-4 border border-gray-700 rounded-3xl focus:outline-2 focus:ring-4 focus:ring-cyan-900"
-          disabled={isLoading}
-          aria-label="Enter your refund request"
-        />
-        <button
-          type="submit"
-          className="bg-cyan-800 text-white/95 font-bold p-2 rounded-lg hover:bg-cyan-700  "
-          disabled={isLoading}
-        >
-          Send
-        </button>
-      </form>
+      
+      <form onSubmit={handleSubmit}
+      className="w-full flex justify-center items-center mt-6"
+>
+  <div className="flex items-center w-full max-w-2xl bg-white rounded-3xl shadow-md px-4">
+    <input
+      type="text"
+      value={input}
+      onChange={(e) => setInput(e.target.value)}
+      placeholder="E.g., I would like a refund for my order..."
+      className="flex-1 bg-transparent p-4 text-black focus:outline-none"
+      disabled={isLoading}
+      aria-label="Enter your refund request"
+    />
+    <button
+      type="submit"
+      className="text-white bg-gray-700 p-2 w-16 rounded-3xl  hover:text-cyan-500 transition disabled:opacity-50"
+      disabled={isLoading}
+    >
+      ⬆
+    </button>
+  </div>
+</form>
+
     </div>
   );
 }
